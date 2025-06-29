@@ -1,0 +1,160 @@
+- id: '1671288118254'
+  alias: Sonos Living Room - Play or pause music
+  description: Play/pause music on Sonos Living Room
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 5ca7b65aa50c51d869ebb0a204b94c38
+    type: action
+    subtype: single
+  condition: []
+  action:
+  - service: media_player.media_play_pause
+    data: {}
+    target:
+      entity_id: media_player.living_room
+  mode: single
+- id: '1692268381695'
+  alias: Sonos Living Room - Next song
+  description: Play next song on Sonos Living Room
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 5ca7b65aa50c51d869ebb0a204b94c38
+    type: action
+    subtype: double
+  condition: []
+  action:
+  - service: media_player.media_next_track
+    data: {}
+    target:
+      entity_id: media_player.living_room
+  mode: single
+- id: '1692270850586'
+  alias: Temperature below 0 °C
+  description: Outside temperature dropped below zero
+  trigger:
+  - type: temperature
+    platform: device
+    device_id: 1bd5a046df4adb3cfc0b0211f118f512
+    entity_id: 99e67fc0b0b36ac2766f670e926ce4f0
+    domain: sensor
+    below: 0
+    for:
+      hours: 3
+      minutes: 0
+      seconds: 0
+  condition: []
+  action:
+  - service: notify.home_assistant
+    data:
+      message: ':cold_face: Outside temperature dropped below 0 °C'
+      target: '1138812781454434334'
+  mode: single
+- id: '1711480736524'
+  alias: Sonos Living Room - Previous song
+  description: Previous song on Sonos Living Room
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 5ca7b65aa50c51d869ebb0a204b94c38
+    type: action
+    subtype: release
+  condition: []
+  action:
+  - service: media_player.media_previous_track
+    data: {}
+    target:
+      entity_id: media_player.living_room
+  mode: single
+- id: '1711724705720'
+  alias: New lowest E10 price
+  description: E10 dropped to a new lowest price in 14 days
+  trigger:
+  - platform: state
+    id: new_low
+    entity_id:
+    - sensor.historically_lowest_e10_price
+  - platform: template
+    id: touches_low
+    value_template: '{{ states("sensor.lowest_e10_price") <= states("sensor.historically_lowest_e10_price")
+      }}'
+  condition:
+  - condition: and
+    conditions:
+    - condition: trigger
+      id:
+      - new_low
+    - condition: template
+      value_template: '{{ states("sensor.lowest_e10_price") <= states("sensor.historically_lowest_e10_price")
+        }}'
+  action:
+  - service: notify.home_assistant
+    data:
+      message: ':fuelpump: New lowest E10 price!
+
+        ➔ {{ states("sensor.lowest_e10_price") }}€ at {{ state_attr(state_attr("sensor.lowest_e10_price",
+        "min_entity_id"), "brand") }} {{ state_attr(state_attr("sensor.lowest_e10_price",
+        "min_entity_id"), "city") }}
+
+        '
+      target: '1138812781454434334'
+  mode: single
+- id: '1711806169730'
+  alias: Temperature sensor monitoring
+  description: Check if temperature sensors send data at least once a day
+  trigger:
+  - platform: template
+    id: bedroom
+    value_template: '{{ states.sensor.bedroom_weather_temperature.last_changed <=
+      (now() - timedelta(hours=3)) }}'
+  - platform: template
+    id: gallery
+    value_template: '{{ states.sensor.gallery_weather_temperature.last_changed <=
+      (now() - timedelta(hours=3)) }}'
+  - platform: template
+    id: laura work
+    value_template: '{{ states.sensor.laura_weather_temperature.last_changed <= (now()
+      - timedelta(hours=3)) }}'
+  - platform: template
+    id: mari work
+    value_template: '{{ states.sensor.mari_weather_temperature.last_changed <= (now()
+      - timedelta(hours=3)) }}'
+  - platform: template
+    id: window side
+    value_template: '{{ states.sensor.window_side_weather_temperature.last_changed
+      <= (now() - timedelta(hours=3)) }}'
+  condition: []
+  action:
+  - service: notify.home_assistant
+    data:
+      message: ':warning: Haven''t received any temperature data from {{ trigger.id
+        }} sensor for 3h.
+
+        '
+      target: '1138812781454434334'
+  mode: single
+- id: '1734544354646'
+  alias: Garbage pick-up event notifications
+  description: Send Discord notification one day before garbage pick-up
+  triggers:
+  - trigger: time
+    at: '10:00:00'
+  conditions: []
+  actions:
+  - action: calendar.get_events
+    metadata: {}
+    target:
+      entity_id: calendar.abfall
+    data:
+      duration:
+        hours: 24
+    response_variable: events
+  - action: notify.home_assistant
+    data:
+      message: "{% set count = 0 %} {% for event in events[\"calendar.abfall\"].events
+        %}\n  {% if count < 0 %}\\n{% endif %}\n  :date: **{{ event.summary }}** on
+        {{ as_timestamp(event.start) | timestamp_custom(\"%A %d.%m.%y\") }}\n  {%
+        set count = count + 1 %}\n{% endfor %}"
+      target: '1138812781454434334'
+
