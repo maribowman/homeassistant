@@ -1,7 +1,7 @@
 [project]
 name = "homeassistant"
 version = "0.1.0"
-description = "Add your description here"
+description = "Used to develop with pyscript homeassistant plugin"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -10,3 +10,13 @@ dependencies = [
     "paho-mqtt>=2.1.0",
     "requests>=2.32.4",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.1",
+    "ruff-lsp>=0.0.62",
+]
+
+[tool.ruff]
+line-length = 200
+
