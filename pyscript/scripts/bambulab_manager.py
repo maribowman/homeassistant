@@ -1,4 +1,3 @@
-import enum
 import os
 import time
 import bambulabs_api as bl
@@ -21,10 +20,10 @@ if __name__ == "__main__":
     printer.mqtt_start()
     time.sleep(2)
 
-    # TODO Use enum correctly -> maps to UNKNOWN
     status = bl.GcodeState(printer.get_state())
-    print(status)
-    while status in [bl.GcodeState.PREPARE, bl.GcodeState.RUNNING, bl.GcodeState.PAUSE]:
+    print(f"printer in {status} state")
+    while status in [bl.GcodeState.PREPARE, bl.GcodeState.RUNNING, bl.GcodeState.PAUSE]:  # noqa E262
+        print(f"dev mode [{status}] - breaking while loop")
         break  # TODO: Remove
         time.sleep(60)
         printer.turn_light_off()
@@ -37,8 +36,12 @@ if __name__ == "__main__":
 
     bed_temperature = printer.get_bed_temperature()
     nozzle_temperature = printer.get_nozzle_temperature()
-    while nozzle_temperature > 50:
-        time.sleep(30)
+
+    # Turn printer off once nozzle has cooled down
+    while nozzle_temperature > 40:
+        print(f"dev mode [{nozzle_temperature}]- breaking nozzle-temp loop")
+        break  # TODO: Remove
+        time.sleep(15)
         nozzle_temperature = printer.get_nozzle_temperature()
 
     printer.mqtt_stop()
