@@ -1,0 +1,72 @@
+default_config:
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+scene: !include scenes.yaml
+script: !include scripts.yaml
+sensor: !include sensors.yaml
+pyscript: !include pyscript/configuration.yaml
+
+logger:
+  default: info
+  logs:
+    custom_components.pyscript: info  # Use `debug` for testing
+
+# Cloudflare remote tunnel
+http:
+  cors_allowed_origins:
+    - https://www.home-assistant.io
+  ip_ban_enabled: true
+  login_attempts_threshold: 3
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.30.33.0/24
+    - 127.0.0.0/24
+
+influxdb:
+  database: home_assistant
+  username: home_assistant
+  password: !secret influxdb_password
+  max_retries: 3
+  tags:
+    source: HA
+  tags_attributes:
+    - friendly_name
+  default_measurement: state
+  include:
+    domains:
+      - sensor
+      - binary_sensor
+    entity_globs:
+      - sensor.*temperature
+      - sensor.*_e10
+
+recorder:
+  db_url: !secret timescale_db_url
+  purge_keep_days: 3650 # 10 years
+  include:
+    domains:
+      - automation
+      - calendar
+      - device_tracker
+      - light
+    entity_globs:
+      - sensor.*energy  # tbd
+      - sensor.*e10  # in progress
+      - sensor.*price
+      - sensor.*super  # tbd
+      - sensor.*temperature  # tbd
+
+waste_collection_schedule:
+  sources:
+    - name: ics
+      args:
+        url: ...
+      calendar_title: Abfall
+  fetch_time: "01:00"
+
+tts:
+  - platform: google_translate
+

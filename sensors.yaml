@@ -1,0 +1,8 @@
+# Historically lowest E10 price
+- platform: statistics
+  name: "Historically lowest E10 price"
+  entity_id: sensor.lowest_e10_price
+  state_characteristic: value_min
+  max_age:
+    days: 14
+
